@@ -1,4 +1,2 @@
 # server
-aaa
-bbb
-ccc
+test
