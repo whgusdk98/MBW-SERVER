@@ -5,6 +5,9 @@ const responseMessage = require('../module/responseMessage');
 const statusCode = require('../module/statusCode');
 const searchPath = require('../model/searchPathModel');
 
+const like = require('../model/setLikeNumModel');
+const authMiddleware = require('../module/authMiddleware');
+
 
 router.get('/', async (req, res) => {
     const {SX, SY, EX, EY, SearchPathType} = req.query;
@@ -27,5 +30,70 @@ router.get('/', async (req, res) => {
         .send(authUtil.successFalse(statusCode.INTERNAL_SERVER_ERROR, responseMessage.INTERNAL_SERVER_ERROR));
     });
 });
+
+
+router.post('/setLikeNum', authMiddleware.validToken, async(req, res) => { //추천 경로 좋아요 추가
+    const {myPathIdx, likeNum} = req.body;
+    // 파라미터 오류
+    if(!myPathIdx || !likeNum) {
+        const missParameters = Object.entries({myPathIdx, likeNum})
+        .filter(it => it[1] == undefined).map(it => it[0]).join(',');
+        res.status(statusCode.BAD_REQUEST)
+        .send(authUtil.successFalse(statusCode.BAD_REQUEST,`${missParameters} ${responseMessage.NULL_VALUE}`));
+        return;
+    }
+
+    
+    // Token 통해서 userIdx 취득
+    const userIdx = req.decoded.userIdx;//클라는 로그인 시 받은 token값을 넘겨줄 것임
+    if(!userIdx)
+    {
+        res.status(statusCode.BAD_REQUEST)
+        .send(authUtil.successFalse(statusCode.BAD_REQUEST, responseMessage.EMPTY_TOKEN));
+        return;
+    }
+
+    //좋아요 이미 했는지 조회
+    let getFavorite = await like.getLikeNum(myPathIdx, userIdx);
+    if(getFavorite == undefined){
+        console.log("처음 좋아요");
+        if(likeNum == -1){
+            res.status(statusCode.BAD_REQUEST)
+            .send(authUtil.successFalse(statusCode.BAD_REQUEST, "좋아요 파라미터 값 이상"));
+        }
+        else{
+            like.addLikeNum(myPathIdx, likeNum, userIdx)
+            .then(({code, json}) => {
+                res.status(code).send(json);
+            }).catch(err => {
+                console.log("좋아요 등록 실패");
+                res.status(statusCode.INTERNAL_SERVER_ERROR)
+                .send(authUtil.successFalse(statusCode.INTERNAL_SERVER_ERROR, responseMessage.INTERNAL_SERVER_ERROR));
+            });
+        }
+    }
+    else{
+        console.log("이미 좋아요함");
+        if(likeNum == -1){//좋아요 취소
+            like.deleteLikeNum(myPathIdx, userIdx)
+            .then(({code, json}) => {
+                res.status(code).send(json);
+            }).catch(err => {
+                console.log("좋아요 취소 실패");
+                res.status(statusCode.INTERNAL_SERVER_ERROR)
+                .send(authUtil.successFalse(statusCode.INTERNAL_SERVER_ERROR, responseMessage.INTERNAL_SERVER_ERROR));
+            });
+        }
+        else{
+            res.status(statusCode.OK)
+            .send(authUtil.successFalse(statusCode.OK, "이미 좋아요를 눌렀습니다."));
+        }
+    }
+
+    //myPath의 likeNum값 setting
+    like.setMyPathLikeNum(myPathIdx)
+});
+
+
 
 module.exports = router;

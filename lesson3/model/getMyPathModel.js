@@ -54,6 +54,7 @@ module.exports = {
         const getPathResult = await pool.queryParam_Arr(getPathQuery, [getMyPathResult[0].myPathIdx]);
         getPathResult[0].clicked = false;
         getPathResult[0].myPathIdx = getMyPathResult[0].myPathIdx;
+        getPathResult[0].likeNum = getMyPathResult[0].likeNum;
         getPathResult[0].info = {};
         getPathResult[0].info.firstStartStation = getMyPathResult[0].startStName;
         getPathResult[0].info.lastEndStation = getMyPathResult[0].endStName;

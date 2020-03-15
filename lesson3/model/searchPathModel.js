@@ -110,9 +110,10 @@ module.exports = {
 
 
             //환승이 3번 이상이면 경로에서 빼기
-            if(path[i].transitCount >= 3){
+            if(path[i].subPath.length >= 9){
                 this.setPathType(path[i].pathType, result);
                 path.splice(i,1);
+                pathDelete = 1;
                 i--;
                 continue;
             }
@@ -196,12 +197,15 @@ module.exports = {
                         /////////////findProblemArea//////////
                         let problemResult = await problemArea.read(path[i].subPath[j].lane[0].subwayCode, path[i].subPath[j].startName,0);
                         if(problemResult.length != 0){//지하철 처음 역이 문제지역일 경우
-                            if(problemResult[0].problemNo != 4){//역 자체 문제-> 경로 제거
-                                this.setPathType(path[i].pathType, result);
+                            path[i].group = 5;
+                            if(problemResult[0].problemNo != 4){//역 자체 문제-> 경로 제거하지 말고 group = 5 :위혐경로
+                                let problemInfo = `${problemResult[0].problem} \n우회경로가 없으므로 다른 경로를 이용해 주세요!`;
+                                path[i].subPath[j].startElevatorInfo.push({problem: problemInfo});
+                                /*this.setPathType(path[i].pathType, result);
                                 path.splice(i,1);
                                 i--;
                                 pathDelete = 1;
-                                break;
+                                break;*/
                             }
                             else{//한 출구만 문제
                                 let problemInfo = `${problemResult[0].endExitNo}번 출구 근처 승강기에 문제가 있어요.\n다른 출구 승강기를 이용해 주세요.`;
@@ -231,13 +235,16 @@ module.exports = {
                         /////////////findProblemArea//////////
                         problemResult = await problemArea.read(path[i].subPath[j].lane[0].subwayCode, +path[i].subPath[j].endName, 0);
                         if(problemResult.length != 0 && path[i].group == 1){
+                            path[i].group = 5;
                             if((problemResult[0].problemNo) != 4 && (i == 0 || path[i-1].group != 4)){//지하철 한정거장 가는데 그 도착역이 문제지역일 경우 경로에서 제외
                                 if(path[i].subPath[j].stationCount == 2){
-                                    this.setPathType(path[i].pathType, result);
+                                    let problemInfo = `${problemResult[0].problem}\n우회경로가 없으므로 다른 경로를 이용해 주세요!`;
+                                    path[i].subPath[j].endElevatorInfo.push({problem: problemInfo});
+                                    /*this.setPathType(path[i].pathType, result);
                                     path.splice(i,1);
                                     i--;
                                     pathDelete = 1;
-                                    break;
+                                    break;*/
                                 }
                                 else{//도착역이 문제일 때 -> 우회경로
                                     let newEndStation = path[i].subPath[j].passStopList.stations[path[i].subPath[j].stationCount-1];
@@ -321,12 +328,15 @@ module.exports = {
                         console.log("문제지역 출력");
                         console.log(problemResult);
                         if(problemResult.length != 0){//출발역 문제인 경우
-                            if(problemResult[0].problemNo != 4){//역 자체 문제-> 경로 제거
-                                this.setPathType(path[i].pathType, result);
+                            path[i].group = 5;
+                            if(problemResult[0].problemNo != 4){//역 자체 문제-> 경로 제거 없이 오류만 출력
+                                let problemInfo = `${problemResult[0].problem}\n우회경로가 없으므로 다른 경로를 이용해 주세요!`;
+                                path[i].subPath[j].startElevatorInfo.push({problem: problemInfo});
+                                /*this.setPathType(path[i].pathType, result);
                                 path.splice(i,1);
                                 i--;
                                 pathDelete = 1;
-                                break;
+                                break;*/
                             }
                             else{//한 출구만 문제
                                 let problemInfo = `${problemResult[0].endExitNo}번 출구 근처 승강기에 문제가 있어요.\n다른 출구 승강기를 이용해 주세요.`;
@@ -359,30 +369,39 @@ module.exports = {
                         path[i].subPath[j].endElevatorInfo = [];
 
                         /////////////findProblemArea//////////
+                        let division = 0;
                         let problemResult = await problemArea.read(path[i].subPath[j-2].lane[0].subwayCode, path[i].subPath[j-2].endName , 1);
                         if((problemResult.length != 0) && (problemResult[0].nextStation == path[i].subPath[j].passStopList.stations[1].stationName)&&(i == 0 || path[i-1].group != 4)&& (path[i].group == 1)){//환승역 문제인 경우-> 우회 경로 group: 4
                             let newEndStation = path[i].subPath[j-2].passStopList.stations[path[i].subPath[j-2].stationCount-1];
-                            console.log("왜들어가..1");
+                            console.log("1111");
+                            path[i].group = 5;
                             if(path[i].subPath[j-2].stationCount-1 == 0){   //전역이 한 개일 경우,,,환승 3번이상인거 없음
                                 if(j-2 == 1) { //처음 대중교통이면 제거
-                                    this.setPathType(path[i].pathType, result);
+                                    let problemInfo = `${problemResult[0].problem}\n우회경로가 없으므로 다른 경로를 이용해 주세요!`;
+                                    path[i].subPath[j].startElevatorInfo.push({problem: problemInfo});
+                                    division = 1;
+                                    /*this.setPathType(path[i].pathType, result);
                                     path.splice(i,1);
                                     i--;
                                     pathDelete = 1;
-                                    break;
+                                    break;*/
                                 }
                                 else if(path[i].subPath[j-4].trafficType == 2){ //처음 대중교통이 버스면 제거
-                                    this.setPathType(path[i].pathType, result);
+                                    let problemInfo = `${problemResult[0].problem}\n우회경로가 없으므로 다른 경로를 이용해 주세요!`;
+                                    path[i].subPath[j].startElevatorInfo.push({problem: problemInfo});
+                                    division = 1;
+                                    /*this.setPathType(path[i].pathType, result);
                                     path.splice(i,1);
                                     i--;
                                     pathDelete = 1;
-                                    break;
+                                    break;*/
                                 }
                                 else{ //처음 대중교통이 지하철이면 연결
                                     newEndStation = path[i].subPath[j-4].passStopList.stations[path[i].subPath[j-4].stationCount-1];
                                     j = j - 2;
                                 }
                             }
+                            if(division == 0){
                             let newResult = await openAPI.searchPubTransPath(newEndStation.x, newEndStation.y, EX, EY, 2);
                                 if (newResult == undefined) {
                                     let pathProblem = "위험 구간이지만 우회경로가 없습니다.\n다른 경로를 이용하세요";
@@ -420,6 +439,7 @@ module.exports = {
                                 console.log("우회 경로추가");
                                 result.subwayBusCount++;      
                                 j = j - 3;
+                            }
                         }
                         else{
                         //////////////////startElevatorInfo////////////////
@@ -448,8 +468,8 @@ module.exports = {
                         if(elev.length == 0){ //아예없는 경우 반대 방면이라도
                             elev = elevModify;
                         }
-                        if(problemResult.length != 0 && i != 0 && path[i-1].group == 4){ //일반 경로에 환승 문제점 출력하기
-                            let problemInfo = `환승 경로 ${problemResult[0].problem}\n우회 경로를 이용해 보세요!`;
+                        if(problemResult.length != 0 && i != 0 && path[i].group == 5){ //일반 경로에 환승 문제점 출력하기
+                            let problemInfo = `환승경로 ${problemResult[0].problem}\n우회 경로를 이용해 보세요!`;
                             path[i].subPath[j].startElevatorInfo.push({problem: problemInfo});
                         }
                         Array.prototype.push.apply(path[i].subPath[j].startElevatorInfo, elev);
@@ -458,6 +478,7 @@ module.exports = {
                         /////////////findProblemArea//////////
                         problemResult = await problemArea.read(path[i].subPath[j].lane[0].subwayCode, path[i].subPath[j].endName, 0);
                         if(problemResult.length != 0 && path[i].group == 1){//도착역 문제인 경우
+                            path[i].group = 5;
                             if((problemResult[0].problemNo != 4) && (i == 0 || path[i-1].group != 4)){//역 자체 문제-> 우회 경로 group: 4
                             console.log("왜들어가..2");
                                 let newEndStation = path[i].subPath[j].passStopList.stations[path[i].subPath[j].stationCount-1];
@@ -540,15 +561,21 @@ module.exports = {
                         //console.log(problemResult);
                         if((problemResult.length != 0) && (problemResult[0].nextStation == path[i].subPath[j].passStopList.stations[1].stationName)&&(i == 0 || path[i-1].group != 4) && (path[i].group == 1)){//환승역 문제인 경우-> 우회 경로 group: 4
                             let newEndStation = path[i].subPath[j-2].passStopList.stations[path[i].subPath[j-2].stationCount-1]; //path[i].subPath[j-2].stationCount-1 이값이 0이면 안됨,,거기부터 좌표로
+                            path[i].group = 5;
+                            let division = 0;
                             if(path[i].subPath[j-2].stationCount == 1){   //전역이 한 개일 경우,,,환승 3번이상인거 없음
                                 if(j-2 == 1) { //처음 대중교통이면 제거
-                                    this.setPathType(path[i].pathType, result);
+                                    let problemInfo = `${problemResult[0].problem}\n우회경로가 없으므로 다른 경로를 이용해 주세요!`;
+                                    path[i].subPath[j].startElevatorInfo.push({problem: problemInfo});
+                                    division = 1;
+                                    /*this.setPathType(path[i].pathType, result);
                                     path.splice(i,1);
                                     i--;
                                     pathDelete = 1;
-                                    break;
+                                    break;*/
                                 }
                             }
+                            if(division == 0){
                             let newResult = await openAPI.searchPubTransPath(newEndStation.x, newEndStation.y, EX, EY, 2);
                                 if (newResult == undefined) {
                                     let pathProblem = "위험 구간이지만 우회경로가 없습니다.\n다른 경로를 이용하세요";
@@ -581,6 +608,7 @@ module.exports = {
                                 path.splice(i,0,newPath);   //우회 경로 추가!!
                                 result.subwayBusCount++;      
                                 j = j - 3; 
+                            }
                         }
                         
                         else{
@@ -612,8 +640,8 @@ module.exports = {
                         if(elev.length == 0){//아예없는 경우 반대 방면이라도 
                             elev = elevModify;
                         }
-                        if(problemResult.length != 0 && i != 0 && path[i-1].group == 4){ //일반 경로에 환승 문제점 출력하기
-                            let problemInfo = `환승 경로 ${problemResult[0].problem}\n우회 경로를 이용해 보세요!`;
+                        if(problemResult.length != 0 && i != 0 && path[i].group == 5){ //일반 경로에 환승 문제점 출력하기
+                            let problemInfo = `환승경로 ${problemResult[0].problem}\n우회 경로를 이용해 보세요!`;
                             path[i].subPath[j].startElevatorInfo.push({problem: problemInfo});
                         }
                         Array.prototype.push.apply(path[i].subPath[j].startElevatorInfo, elev);
@@ -624,11 +652,11 @@ module.exports = {
                 /*************************** */
 
                 
-                else if(path[i].subPath[j].trafficType === 2) {//버스일 경우 실시간 도착 정보 추가
+                else if(path[i].subPath[j].trafficType === 2) {//버스
                     busTransitCount++;
                     //버스 arsID정보 가져오기
                     let busResult = await openAPI.getBusArsID(path[i].subPath[j].startX,path[i].subPath[j].startY);
-                    console.log(busResult);
+                    //console.log(busResult);
                     if (busResult == undefined) {
                         return({
                             code: statusCode.BAD_REQUEST,
@@ -652,7 +680,7 @@ module.exports = {
                         let k;
                         for(k = 0; k < itemList.length; k++){
                             var str = itemList[k].stationNm._text;
-                            if(str == path[i].subPath[j].startName){//공공데이터 : 남양주65-1 /odsay : 65-1
+                            if(str == path[i].subPath[j].startName){
                                 let arsID = itemList[k].arsId._text;
                                 path[i].subPath[j].busArsID = arsID; 
                                 break;
@@ -736,8 +764,15 @@ module.exports = {
                     }
                 }*/
             }
+        }
 
-            
+        //환승이 3번 이상이면 경로에서 빼기
+        if(path[i].subPath.length >= 9){
+            this.setPathType(path[i].pathType, result);
+            path.splice(i,1);
+            pathDelete = 1;
+            i--;
+            continue;
         }
 
         
@@ -745,9 +780,12 @@ module.exports = {
             if(path[i].myPathIdx == undefined){
                 path[i].myPathIdx = -1;
             }
-    
+            if(path[i].likeNum == undefined){
+                path[i].likeNum = -1;
+            }
             path[i] = {//odsay 가져온 정보에서 출력할 값들만 대입해서 path배열에 넣음 
                 myPathIdx: path[i].myPathIdx,
+                likeNum: path[i].likeNum,
                 pathType: path[i].pathType,
                 totalTime: path[i].info.totalTime,
                 totalPay: path[i].info.payment,
@@ -766,6 +804,7 @@ module.exports = {
         }
         count = 0;
         totalWalkTime = 0;
+        //console.log(path);
         }
 
 
@@ -775,6 +814,7 @@ module.exports = {
             subwayBusCount: result.subwayBusCount,
             path: path
         }
+        //console.log(result);
 
 
         return({
