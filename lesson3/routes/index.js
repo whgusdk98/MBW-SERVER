@@ -7,5 +7,6 @@ router.use('/users', require('./users'));
 router.use('/searchPath', require('./searchPath'));
 router.use('/addMyPath', require('./addMyPath'));
 router.use('/problemArea', require('./problemArea'));
+router.use('/myPlace',require('./myPlace'));
 
 module.exports = router;

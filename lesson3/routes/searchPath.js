@@ -7,18 +7,25 @@ const searchPath = require('../model/searchPathModel');
 
 
 router.get('/', async (req, res) => {
-    if (!req.query.SX || !req.query.EX || !req.query.SY || !req.query.EY) {
-        res.status(statusCode.BAD_REQUEST).send(authUtil.successFalse(statusCode.BAD_REQUEST,responseMessage.NULL_VALUE));
+    const {SX, SY, EX, EY, SearchPathType} = req.query;
+    //console.log(req.query);
+    const missParameters = Object.entries({SX, SY, EX, EY})
+    .filter(it => it[1] == undefined).map(it => it[0]).join(',');
+    // 파라미터 값 체크
+    if(!SX || !SY || !EX || !EY) {
+        res.status(statusCode.BAD_REQUEST)
+        .send(authUtil.successFalse(statusCode.BAD_REQUEST,`${missParameters} ${responseMessage.NULL_VALUE}`));
+        return;
     }
 
-    try {
-        let result = await searchPath.searchPath(req.query.SX, req.query.SY, req.query.EX, req.query.EY, req.query.SearchPathType)//, req.query.busFilter
-        res.status(result.code).send(result.json);
-    }
-    catch (err) {
+    searchPath.searchPath(SX, SY, EX, EY, SearchPathType)//, busFilter
+    .then(({code, json}) => {
+        res.status(code).send(json);
+    }).catch(err => {
         console.log('길찾기 오류!!');
-        console.log(err);
-    }
+        res.status(statusCode.INTERNAL_SERVER_ERROR)
+        .send(authUtil.successFalse(statusCode.INTERNAL_SERVER_ERROR, responseMessage.INTERNAL_SERVER_ERROR));
+    });
 });
 
 module.exports = router;

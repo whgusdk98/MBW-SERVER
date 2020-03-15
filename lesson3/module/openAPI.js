@@ -1,5 +1,5 @@
 const request = require('request');
-const apiKey = require('../config/apikey');
+const apiKey = require('../config/apiKey');
 //var parseString = require('xml2js').parseString;
 var convert = require('xml-js');
 

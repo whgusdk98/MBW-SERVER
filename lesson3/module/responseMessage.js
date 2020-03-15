@@ -36,6 +36,16 @@ module.exports = {
     INVALID_TOKEN: "유효하지 않은 토큰값입니다",
     ADD_MY_PATH_SUCCESS: "나만의 경로 추가 성공",
 
-    GET_SUBWAY_GPS_FAILED:"addPath 지하철 역 정보 탐색 실패"
+    GET_SUBWAY_GPS_FAILED:"addPath 지하철 역 정보 탐색 실패",
+
+    ADD_MY_LOCATION_FAIL:"주소 등록 실패",
+    GET_MY_LOCATION_FAIL:"등록된 주소가 없습니다",
+    ADD_MY_LOCATION_SUCCESS:"주소 등록 성공",
+    GET_MY_LOCATION_SUCCESS:"주소 조회 성공",
+
+    ADD_FAVORITE_PATH_FAIL:"즐겨찾는 경로 등록 실패",
+    GET_FAVORITE_PATH_FAIL:"즐겨찾는 경로가 없습니다",
+    ADD_FAVORITE_PATH_SUCCESS:"즐겨찾는 경로 등록 성공",
+    GET_FAVORITE_PATH_SUCCESS:"즐겨찾는 경로 조회 성공"
 
 }

@@ -20,7 +20,7 @@ module.exports = {
         const values = [subwayCode, stationName, transfer, nextStation, endExitNo, problemNo, problem];
         return await pool.queryParam_Parse(query, values)
             .then(result => {
-                console.log(result);
+                //console.log(result);
                 const problemAreaIdx = result.problemAreaIdx;
                 return {
                     code: statusCode.OK,
@@ -42,7 +42,7 @@ module.exports = {
 
     read: async(subwayCode, stationName, transfer) => {
         const table = 'problemArea';
-        let stName = stationName.split('(')[0];
+        let stName = (String(stationName)).split('(')[0];
         const query = `SELECT * FROM ${table} WHERE subwayCode = ${subwayCode} AND stationName = '${stName}' AND transfer = ${transfer}`;
         return await pool.queryParam_None(query)
             .then(result => {
