@@ -3,6 +3,7 @@ const authUtil = require('../module/authUtil');
 const responseMessage = require('../module/responseMessage');
 const statusCode = require('../module/statusCode');
 const elevator = require('./elevatorModel');
+const publicSubwayCode = require('./getSubwayCode');
 const myPath = require('./getMyPathModel');
 const problemArea = require('./problemAreaModel');
 
@@ -91,12 +92,12 @@ module.exports = {
 
 
         let categoryBool = 1;
-        let totalWalkTime = 0;
-        let count = 0;
-        let pathDelete = 0;
         let test = 0;
         let test2 = 0;
         for (var i = 0; i < path.length; i++) {
+            let totalWalkTime = 0;
+            let count = 0;
+            let pathDelete = 0;
             test2++;
             if(test2 == 25){
                 console.log("path호출횟수 초과");
@@ -178,6 +179,9 @@ module.exports = {
 
                 if(path[i].subPath[j].trafficType === 1) {//지하철일 경우 엘리베이터 정보 추가
                     subwayTransitCount++;
+
+                    let code = (await publicSubwayCode.find(path[i].subPath[j].lane[0].subwayCode)).json;  
+                    path[i].subPath[j].lane[0].publicCode = code[0].potalCode;
 
                     if(path[i].subPath[j].startExitX != undefined && path[i].subPath[j].startExitNo ==undefined){//을지로입구역의 경우 출구좌표는 있는데 번호가 없어서 밑 if문에서 걸러지지 않음,,
                         path[i].subPath[j].startExitNo = "0";
@@ -678,13 +682,18 @@ module.exports = {
                         }
     
                         let k;
+                        let arsID
                         for(k = 0; k < itemList.length; k++){
                             var str = itemList[k].stationNm._text;
                             if(str == path[i].subPath[j].startName){
-                                let arsID = itemList[k].arsId._text;
+                                arsID = itemList[k].arsId._text;
                                 path[i].subPath[j].busArsID = arsID; 
                                 break;
                             }
+                        }
+                        if(k == itemList.length){
+                            arsID = itemList[0].arsId._text;
+                            path[i].subPath[j].busArsID = arsID; 
                         }
 
 
@@ -775,6 +784,8 @@ module.exports = {
             continue;
         }
 
+        //console.log(pathDelete);
+
         
         if(pathDelete == 0){
             if(path[i].myPathIdx == undefined){
@@ -797,13 +808,9 @@ module.exports = {
                 totalWalkTime: totalWalkTime,
                 group: path[i].group, //1:일반 경로 2:사용자추가 경로 3:사용자 추가 경로 4:우회경로
                 subPath: path[i].subPath,//subPath 그대로 대입
-            }            
+            } 
+            console.log(i);           
         }
-        else{
-            pathDelete = 0;
-        }
-        count = 0;
-        totalWalkTime = 0;
         //console.log(path);
         }
 

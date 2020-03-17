@@ -13,6 +13,13 @@ const authUtil = {
             data: null 
         } 
     }, 
+    successFail: (statusCode, message, data)=> { 
+        return { 
+            statusCode: statusCode, 
+            message: message,
+            data: [] 
+        } 
+    }
 } 
 module.exports = authUtil;
 

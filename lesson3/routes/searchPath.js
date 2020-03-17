@@ -57,7 +57,7 @@ router.post('/setLikeNum', authMiddleware.validToken, async(req, res) => { //추
     let getFavorite = await like.getLikeNum(myPathIdx, userIdx);
     if(getFavorite == undefined){
         console.log("처음 좋아요");
-        if(likeNum == -1){
+        if(likeNum != 1){
             res.status(statusCode.BAD_REQUEST)
             .send(authUtil.successFalse(statusCode.BAD_REQUEST, "좋아요 파라미터 값 이상"));
         }
@@ -73,7 +73,10 @@ router.post('/setLikeNum', authMiddleware.validToken, async(req, res) => { //추
         }
     }
     else{
+        res.status(statusCode.USER_ALREADY)
+        .send(authUtil.successFalse(statusCode.USER_ALREADY, "이미 좋아요를 한 경로입니다."));
         console.log("이미 좋아요함");
+        /*
         if(likeNum == -1){//좋아요 취소
             like.deleteLikeNum(myPathIdx, userIdx)
             .then(({code, json}) => {
@@ -83,15 +86,18 @@ router.post('/setLikeNum', authMiddleware.validToken, async(req, res) => { //추
                 res.status(statusCode.INTERNAL_SERVER_ERROR)
                 .send(authUtil.successFalse(statusCode.INTERNAL_SERVER_ERROR, responseMessage.INTERNAL_SERVER_ERROR));
             });
-        }
-        else{
-            res.status(statusCode.OK)
-            .send(authUtil.successFalse(statusCode.OK, "이미 좋아요를 눌렀습니다."));
-        }
+        }*/
     }
 
     //myPath의 likeNum값 setting
     like.setMyPathLikeNum(myPathIdx)
+    .then(({code, json}) => {
+        res.status(code).send(json);
+    }).catch(err => {
+        console.log("좋아요 총합 계산 실패");
+        res.status(statusCode.INTERNAL_SERVER_ERROR)
+        .send(authUtil.successFalse(statusCode.INTERNAL_SERVER_ERROR, responseMessage.INTERNAL_SERVER_ERROR));
+    });
 });
 
 

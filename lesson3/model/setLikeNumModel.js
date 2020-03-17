@@ -5,7 +5,7 @@ const pool = require('../module/poolAsync');
 
 
 module.exports = {
-    addLikeNum: async (myPathIdx, likeNum, userIdx) => { //집이나 직장 주소 추가
+    addLikeNum: async (myPathIdx, likeNum, userIdx) => { //좋아요 등록
         const table = 'myPathLike';
         const fields = 'myPathIdx, likeNum, userIdx';
         const questions = `?,?,?`;
@@ -16,15 +16,15 @@ module.exports = {
                 if (result.length != 0){ 
                     return {
                         code: statusCode.OK,
-                        json: authUtil.successTrue(statusCode.OK, "좋아요 등록 성공")
+                        json: authUtil.successTrue(statusCode.OK, "좋아요 등록 성공", null)
                     };
                 }
             })
             .catch((err) => {
-                return ({
-                    code: statusCode.BAD_REQUEST,
-                    json: authUtil.successFalse(statusCode.BAD_REQUEST, "좋아요 등록 실패")
-                })
+                return {
+                    code: statusCode.DB_ERROR,
+                    json: authUtil.successFalse(statusCode.DB_ERROR, "좋아요 등록 실패")
+                };
             })
     },
 
@@ -36,15 +36,15 @@ module.exports = {
                 if (result.length != 0){ 
                     return {
                         code: statusCode.OK,
-                        json: authUtil.successTrue(statusCode.OK, "좋아요 취소 성공")
+                        json: authUtil.successTrue(statusCode.OK, "좋아요 취소 성공", null)
                     };
                 }
             })
             .catch((err) => {
-                return ({
+                return {
                     code: statusCode.BAD_REQUEST,
                     json: authUtil.successFalse(statusCode.BAD_REQUEST, "좋아요 취소 실패")
-                })
+                };
             })
     },
 
@@ -62,10 +62,10 @@ module.exports = {
                 //존재하지 않으면 아무것도 반환x
             })
             .catch((err) => {
-                return ({
+                return {
                     code: statusCode.NOT_FOUND,
                     json: authUtil.successFalse(statusCode.NOT_FOUND, "좋아요 조회 실패")
-                })
+                };
             })
     },
 
@@ -79,10 +79,10 @@ module.exports = {
             const myPathQuery = `UPDATE myPath SET likeNum = ${sumLike} WHERE myPathIdx = ${myPathIdx}`
             await conn.query(myPathQuery);
         }).catch((err) => {
-            return ({
+            return {
                 code: statusCode.BAD_REQUEST,
                 json: authUtil.successFalse(statusCode.BAD_REQUEST, "sumLike 실패")
-            })
+            };
         })
     }
 }

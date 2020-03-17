@@ -37,7 +37,7 @@ module.exports = {
             //({code : statusCode.BAD_REQUEST, json : authUtil.successFalse(statusCode.BAD_REQUEST, resMsg.NULL_VALUE)})
         }
 
-        //let returnObj={};
+        //let newPathResult={};
         //일단 하나만 보여주도록 했음
 
         if(filter == 2){
@@ -52,17 +52,16 @@ module.exports = {
         }
         //console.log(getMyPathResult);
         const getPathResult = await pool.queryParam_Arr(getPathQuery, [getMyPathResult[0].myPathIdx]);
-        getPathResult[0].clicked = false;
         getPathResult[0].myPathIdx = getMyPathResult[0].myPathIdx;
         getPathResult[0].likeNum = getMyPathResult[0].likeNum;
         getPathResult[0].info = {};
         getPathResult[0].info.firstStartStation = getMyPathResult[0].startStName;
         getPathResult[0].info.lastEndStation = getMyPathResult[0].endStName;
         getPathResult[0].info.payment = getPathResult[0].totalPay;
-        let returnObj = getPathResult[0];
+        let newPathResult = getPathResult[0];
 
         const getSubPathResult = await pool.queryParam_Arr(getSubPathQuery, [getPathResult[0].pathIdx]);
-        returnObj.subPath = [];
+        newPathResult.subPath = [];
         let sumTotalTime = 0;
         let busTransitCount = 0;
         let subwayTransitCount = 0;
@@ -81,29 +80,29 @@ module.exports = {
             }
 
             if(i < Math.floor(getSubPathResult.length/2)){ //지하철이나 버스를 도보 사이사이에
-                returnObj.subPath[2*i+1] = getSubPathResult[i];
+                newPathResult.subPath[2*i+1] = getSubPathResult[i];
             }
             else{
-                returnObj.subPath[(i- Math.floor(getSubPathResult.length/2))*2] = getSubPathResult[i];
+                newPathResult.subPath[(i- Math.floor(getSubPathResult.length/2))*2] = getSubPathResult[i];
             }
 
 
             if (getSubPathResult[i].trafficType !== 3) {//버스나 지하철이면.
                 let getStationResult = await pool.queryParam_Arr(getStationQuery, [getSubPathResult[i].subPathIdx]);
-                returnObj.subPath[2*i+1].passStopList = {};
-                returnObj.subPath[2*i+1].passStopList.stations = [];
+                newPathResult.subPath[2*i+1].passStopList = {};
+                newPathResult.subPath[2*i+1].passStopList.stations = [];
                 //console.log(getStationResult);
                 for (var j = 0; j < getStationResult.length; j++) {
-                    returnObj.subPath[2*i+1].passStopList.stations.push(getStationResult[j]);
+                    newPathResult.subPath[2*i+1].passStopList.stations.push(getStationResult[j]);
                 }
-                //console.log(returnObj.subPath[i].passStopList.stations);
+                //console.log(newPathResult.subPath[i].passStopList.stations);
             }
         }
-        returnObj.info.totalTime = sumTotalTime;
-        returnObj.info.busTransitCount = busTransitCount;
-        returnObj.info.subwayTransitCount = subwayTransitCount;
+        newPathResult.info.totalTime = sumTotalTime;
+        newPathResult.info.busTransitCount = busTransitCount;
+        newPathResult.info.subwayTransitCount = subwayTransitCount;
 
-        return returnObj;
+        return newPathResult;
     }
 }
 

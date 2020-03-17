@@ -8,10 +8,10 @@ const authMiddleware = require('../module/authMiddleware');
 
 
 router.post('/addLocation', authMiddleware.validToken, async(req, res) => { //집 or 직장 주소 추가
-    const {category, address, GPSX, GPSY} = req.body;
+    const {category, address, X, Y} = req.body;
     // 파라미터 오류
-    if(!category || !address || !GPSX || !GPSY) {
-        const missParameters = Object.entries({category, address, GPSX, GPSY})
+    if(!category || !address || !X || !Y) {
+        const missParameters = Object.entries({category, address, X, Y})
         .filter(it => it[1] == undefined).map(it => it[0]).join(',');
         res.status(statusCode.BAD_REQUEST)
         .send(authUtil.successFalse(statusCode.BAD_REQUEST,`${missParameters} ${responseMessage.NULL_VALUE}`));
@@ -25,13 +25,13 @@ router.post('/addLocation', authMiddleware.validToken, async(req, res) => { //�
         .send(authUtil.successFalse(statusCode.BAD_REQUEST, responseMessage.EMPTY_TOKEN));
         return;
     }
-    //console.log(`${category}, ${address}, ${GPSX}, ${GPSY}, ${userIdx}`);
+    //console.log(`${category}, ${address}, ${X}, ${Y}, ${userIdx}`);
 
     //원래 주소 등록했는지 조회
-    let getPlace = await myPlace.getLocation(category,userIdx);
+    let getPlace = await myPlace.checkLocation(category,userIdx);
     if(getPlace == undefined){
         console.log("처음등록");
-        myPlace.addLocation(category, address, GPSX, GPSY, userIdx)
+        myPlace.addLocation(category, address, X, Y, userIdx)
         .then(({code, json}) => {
             res.status(code).send(json);
         }).catch(err => {
@@ -42,7 +42,7 @@ router.post('/addLocation', authMiddleware.validToken, async(req, res) => { //�
     }
     else{
         console.log("업데이트");
-        myPlace.updateLocation(category, address, GPSX, GPSY, userIdx)
+        myPlace.updateLocation(category, address, X, Y, userIdx)
         .then(({code, json}) => {
             res.status(code).send(json);
         }).catch(err => {
@@ -54,7 +54,7 @@ router.post('/addLocation', authMiddleware.validToken, async(req, res) => { //�
 });
 
 
-router.get('/getLocation', authMiddleware.validToken, async(req, res) => { //집 or 직장 주소 가져오기
+router.get('/getLocation', authMiddleware.validToken2, async(req, res) => { //집 or 직장 주소 가져오기
     const category = req.query.category;
     console.log(category);
 
@@ -63,7 +63,7 @@ router.get('/getLocation', authMiddleware.validToken, async(req, res) => { //집
     if(!userIdx)
     {
         res.status(statusCode.BAD_REQUEST)
-        .send(authUtil.successFalse(statusCode.BAD_REQUEST, responseMessage.EMPTY_TOKEN));
+        .send(authUtil.successFail(statusCode.BAD_REQUEST, responseMessage.EMPTY_TOKEN));
         return;
     }
 
@@ -73,7 +73,7 @@ router.get('/getLocation', authMiddleware.validToken, async(req, res) => { //집
     }).catch(err => {
         console.log("주소 조회 실패");
         res.status(statusCode.INTERNAL_SERVER_ERROR)
-        .send(authUtil.successFalse(statusCode.INTERNAL_SERVER_ERROR, responseMessage.INTERNAL_SERVER_ERROR));
+        .send(authUtil.successFail(statusCode.INTERNAL_SERVER_ERROR, responseMessage.INTERNAL_SERVER_ERROR));
     });
 });
 
@@ -85,10 +85,10 @@ router.get('/getLocation', authMiddleware.validToken, async(req, res) => { //집
 
 
 router.post('/addFavoritePath', authMiddleware.validToken, async(req, res) => { //집 or 직장 주소 추가
-    const {startAddress, startLongi, startLati, endAddress, endLongi, endLati} = req.body;
+    const {startAddress, SX, SY, endAddress, EX, EY} = req.body;
     // 파라미터 오류
-    if(!startAddress || !startLongi || !startLati || !endAddress || !endLongi || !endLati) {
-        const missParameters = Object.entries({startAddress, startLongi, startLati, endAddress, endLongi, endLati})
+    if(!startAddress || !SX || !SY || !endAddress || !EX || !EY) {
+        const missParameters = Object.entries({startAddress, SX, SY, endAddress, EX, EY})
         .filter(it => it[1] == undefined).map(it => it[0]).join(',');
         res.status(statusCode.BAD_REQUEST)
         .send(authUtil.successFalse(statusCode.BAD_REQUEST,`${missParameters} ${responseMessage.NULL_VALUE}`));
@@ -109,7 +109,7 @@ router.post('/addFavoritePath', authMiddleware.validToken, async(req, res) => { 
     let getFavorite = await myPlace.getFavoritePath(startAddress, endAddress, userIdx);
     if(getFavorite == undefined){
         console.log("처음등록");
-        myPlace.addFavoritePath(startAddress, startLongi, startLati, endAddress, endLongi, endLati, userIdx)
+        myPlace.addFavoritePath(startAddress, SX, SY, endAddress, EX, EY, userIdx)
         .then(({code, json}) => {
             res.status(code).send(json);
         }).catch(err => {
@@ -126,13 +126,13 @@ router.post('/addFavoritePath', authMiddleware.validToken, async(req, res) => { 
 });
 
 
-router.get('/getFavoritePath', authMiddleware.validToken, async(req, res) => { //집 or 직장 주소 가져오기
+router.get('/getFavoritePath', authMiddleware.validToken2, async(req, res) => { //집 or 직장 주소 가져오기
     // Token 통해서 userIdx 취득
     const userIdx = req.decoded.userIdx;//클라는 로그인 시 받은 token값을 넘겨줄 것임
     if(!userIdx)
     {
         res.status(statusCode.BAD_REQUEST)
-        .send(authUtil.successFalse(statusCode.BAD_REQUEST, responseMessage.EMPTY_TOKEN));
+        .send(authUtil.successFail(statusCode.BAD_REQUEST, responseMessage.EMPTY_TOKEN));
         return;
     }
 
@@ -142,7 +142,7 @@ router.get('/getFavoritePath', authMiddleware.validToken, async(req, res) => { /
     }).catch(err => {
         console.log("주소 조회 실패");
         res.status(statusCode.INTERNAL_SERVER_ERROR)
-        .send(authUtil.successFalse(statusCode.INTERNAL_SERVER_ERROR, responseMessage.INTERNAL_SERVER_ERROR));
+        .send(authUtil.successFail(statusCode.INTERNAL_SERVER_ERROR, responseMessage.INTERNAL_SERVER_ERROR));
     });
 });
 

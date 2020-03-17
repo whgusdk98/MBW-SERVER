@@ -9,7 +9,6 @@ const authMiddleware = {
     validToken: async(req, res, next) => {
         const token = req.headers.token;
         if(!token){
-            console.log("ssss");
             return res.status(statusCode.BAD_REQUEST).send(utils.successFalse(statusCode.BAD_REQUEST, responseMessage.EMPTY_TOKEN));
         } else{
             
@@ -20,6 +19,26 @@ const authMiddleware = {
             }
             else if(user == -2) {
                 return res.status(statusCode.FORBIDDEN).send(utils.successFalse(statusCode.FORBIDDEN, responseMessage.INVALID_TOKEN));
+            }
+
+            req.decoded = user; 
+            console.log(req.decoded);           
+            next();
+        }
+    } ,
+    validToken2: async(req, res, next) => {
+        const token = req.headers.token;
+        if(!token){
+            return res.status(statusCode.BAD_REQUEST).send(utils.successFail(statusCode.BAD_REQUEST, responseMessage.EMPTY_TOKEN));
+        } else{
+            
+            const user = jwt.verify(token);
+            console.log(user);
+            if(user == -3) {
+                return res.status(statusCode.FORBIDDEN).send(utils.successFail(statusCode.FORBIDDEN, responseMessage.EXPIRED_TOKEN));
+            }
+            else if(user == -2) {
+                return res.status(statusCode.FORBIDDEN).send(utils.successFail(statusCode.FORBIDDEN, responseMessage.INVALID_TOKEN));
             }
 
             req.decoded = user; 
