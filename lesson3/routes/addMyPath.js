@@ -7,12 +7,15 @@ const myPath = require('../model/addMyPathModel');
 const openAPI = require('../module/openAPI');
 const calcDistance = require('../model/calcDistance');
 const authMiddleware = require('../module/authMiddleware');
+const transCode = require('../model/getSubwayCode');
 
 
-router.post('/', authMiddleware.validToken, async(req, res) => { //addSchedule //authMiddleware.validToken 2/17추가했음
+router.post('/', authMiddleware.validToken, async(req, res) => {
     
     let body = req.body;
     let path = body.path;
+    console.log("바디");
+    console.log(body);
     if(path == undefined){
         res.status(statusCode.BAD_REQUEST)
         .send(authUtil.successFalse(statusCode.BAD_REQUEST, "request body형식이 옳지 않습니다."));
@@ -22,7 +25,8 @@ router.post('/', authMiddleware.validToken, async(req, res) => { //addSchedule /
         res.status(statusCode.BAD_REQUEST)
         .send(authUtil.successFalse(statusCode.BAD_REQUEST, "request body형식이 옳지 않습니다."));
     }
-    
+    console.log("바디.path");
+    console.log(path);
     // Token 통해서 userIdx 취득
     const userIdx = req.decoded.userIdx;//클라는 로그인 시 받은 token값을 넘겨줄 것임
 
@@ -53,29 +57,31 @@ router.post('/', authMiddleware.validToken, async(req, res) => { //addSchedule /
 
             if (subPath[i].trafficType === 1) { //지하철
                 count ++;
-                let startSt = await openAPI.getSubwayGPS(subPath[i].startID);//지하철 출발역
-                if (startSt === undefined) {
+                let startSt = await transCode.transOdSayCode(subPath[i].startID);//db에서 subwayCode 찾기
+                console.log(startSt);
+                if (startSt.length == 0) {
                     throw ({ 
                         code: statusCode.BAD_REQUEST, 
-                        json: authUtil.successFalse(statusCode.BAD_REQUEST, responseMessage.GET_SUBWAY_GPS_FAILED) 
+                        json: authUtil.successFalse(statusCode.BAD_REQUEST, "db에서 해당 startID 지하철역을 찾을 수 없습니다.") 
                     });
                 }
-                let endSt = await openAPI.getSubwayGPS(subPath[i].endID);//지하철 도착역
-                if (endSt === undefined) {
+                let endSt = await transCode.transOdSayCode(subPath[i].endID);//db에서 subwayCode 찾기
+                if (endSt.length == 0) {
                     throw ({ 
                         code: statusCode.BAD_REQUEST, 
-                        json: authUtil.successFalse(statusCode.BAD_REQUEST, responseMessage.GET_SUBWAY_GPS_FAILED) 
+                        json: authUtil.successFalse(statusCode.BAD_REQUEST, "db에서 해당 endID 지하철역을 찾을 수 없습니다.") 
                     });
                 }
-                let result = await openAPI.searchPubTransPath(startSt.x, startSt.y, endSt.x, endSt.y, 1);
-                if (result === undefined) {
+
+                let result = await openAPI.searchPubTransPath(startSt[0].x, startSt[0].y, endSt[0].x, endSt[0].y, 1);
+                if (result == undefined) {
                     throw ({ 
                         code: statusCode.BAD_REQUEST, 
                         json: authUtil.successFalse(statusCode.BAD_REQUEST, "지하철 GPS값이 올바르지 않습니다.") 
                     });
                 }
                 let subway = result.path;
-                if (subway === undefined) {
+                if (subway == undefined) {
                     throw ({ 
                         code: statusCode.BAD_REQUEST, 
                         json: authUtil.successFalse(statusCode.BAD_REQUEST, "지하철 GPS값이 올바르지 않습니다.") 
@@ -83,7 +89,7 @@ router.post('/', authMiddleware.validToken, async(req, res) => { //addSchedule /
                 }
                 for (var k = 0;k<subway.length;k++){
                     if(subway[k].info.subwayTransitCount != 1) continue;
-                    if (subway[k].subPath[1].startID == startSt.startID && subway[k].subPath[1].endID == startSt.endID) {
+                    if ((subway[k].subPath[1].startID == startSt[0].stationID) && (subway[k].subPath[1].endID == endSt[0].stationID)) {
                         var subwayJson = subway[k].subPath[1];
                         break;
                     }
@@ -111,6 +117,9 @@ router.post('/', authMiddleware.validToken, async(req, res) => { //addSchedule /
                 if (addSubwayResult === false) throw ({ code: addSubwayResult.code, json: addSubwayResult.json });
 
                 if(count == 1){
+                    if(subPath.length == 3){
+                        endStName = stopArray[stopArray.length-1].stationName;
+                    }
                     startStName = stopArray[0].stationName;
                 }
                 else if(count == subPath.length-2){
@@ -152,12 +161,13 @@ router.post('/', authMiddleware.validToken, async(req, res) => { //addSchedule /
                     var distance = bus[k].subPath[1].distance;
                     var sectionTime = bus[k].subPath[1].sectionTime;
                     var type = bus[k].subPath[1].lane[j].type;
+                    var endID = bus[k].subPath[1].endID;
                     break;
 
                 }
                 
                 let addBusResult = await myPath.addBus(2, distance, sectionTime, subPath[i].stationCount, subPath[i].startName, subPath[i].startX, subPath[i].startY, 
-                    subPath[i].endName, subPath[i].endX, subPath[i].endY, subPath[i].startID, subPath[i].busNo, type, stopArray, addPathsResult.insertId);
+                    subPath[i].endName, subPath[i].endX, subPath[i].endY, subPath[i].startID, endID, subPath[i].busNo, type, stopArray, addPathsResult.insertId);
                 if (addBusResult === false) throw ({ code: addBusResult.code, json: addBusResult.json });
 
                 //도보 계산할 때 필요
@@ -168,13 +178,16 @@ router.post('/', authMiddleware.validToken, async(req, res) => { //addSchedule /
 
 
                 if(count == 1){
+                    if(subPath.length == 3){
+                        endStName = subPath[i].endName;
+                    }
                     startStName = subPath[i].startName;
                 }
                 else if(count == subPath.length-2){
                     endStName = subPath[i].endName;
                 }
             }
-            else {//도보 따로 계산하도록 해야하는데...
+            else {//도보 따로 계산
                 count++;
             }
         }

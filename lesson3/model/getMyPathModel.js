@@ -38,10 +38,10 @@ module.exports = {
         }
 
         //let newPathResult={};
-        //일단 하나만 보여주도록 했음
+        //일단 하나만 보여주도록
 
         if(filter == 2){
-            //정렬을 다르게...station이름이 같은게 첫번째오도록
+            //정렬을 다르게, station이름이 같은게 첫번째오도록
             for(var k = 0;k<getMyPathResult.length;k++){
                 if(getMyPathResult[k].startStName == startStName){
                     let ob = getMyPathResult[k];

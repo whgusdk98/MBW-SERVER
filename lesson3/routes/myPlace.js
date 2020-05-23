@@ -25,7 +25,6 @@ router.post('/addLocation', authMiddleware.validToken, async(req, res) => { //�
         .send(authUtil.successFalse(statusCode.BAD_REQUEST, responseMessage.EMPTY_TOKEN));
         return;
     }
-    //console.log(`${category}, ${address}, ${X}, ${Y}, ${userIdx}`);
 
     //원래 주소 등록했는지 조회
     let getPlace = await myPlace.checkLocation(category,userIdx);
@@ -107,7 +106,8 @@ router.post('/addFavoritePath', authMiddleware.validToken, async(req, res) => { 
 
     //원래 주소 등록했는지 조회
     let getFavorite = await myPlace.getFavoritePath(startAddress, endAddress, userIdx);
-    if(getFavorite == undefined){
+    console.log(getFavorite);
+    if(getFavorite.length != 0){
         console.log("처음등록");
         myPlace.addFavoritePath(startAddress, SX, SY, endAddress, EX, EY, userIdx)
         .then(({code, json}) => {

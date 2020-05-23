@@ -10,7 +10,8 @@ module.exports = {
         startName
     }) => {
         const table = 'elevatorInfo';
-        const query = `SELECT * FROM ${table} WHERE categoryBool = '${categoryBool}' AND subwayCode = '${subwayCode}' AND stationName = '${startName}'`;
+        let stName = String(startName).split('(')[0];
+        const query = `SELECT * FROM ${table} WHERE categoryBool = '${categoryBool}' AND subwayCode = '${subwayCode}' AND stationName = '${stName}'`;
         //const query = `SELECT * FROM ${table} WHERE categoryBool = '1' AND subwayCode = '4' AND  stationName = '숙대입구'`;
         return pool.queryParam_None(query)
             .then(async (result) => {

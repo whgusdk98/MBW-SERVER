@@ -62,8 +62,6 @@ module.exports = {
                 else {
                     var xml = result.body;
                     var result1 = convert.xml2json(xml, {compact: true, spaces: 0});
-                    //console.log("*********");
-                    //console.log(result1);
                     resolve(JSON.parse(result1).ServiceResult.msgBody);
                 }
             })

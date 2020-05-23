@@ -9,6 +9,7 @@ var usersRouter = require('./routes/users');
 var searchPathRouter = require('./routes/searchPath');
 var addMyPathRouter = require('./routes/addMyPath');
 var problemAreaRouter = require('./routes/problemArea');
+var myPlaceRouter = require('./routes/myPlace');
 
 var app = express();
 
@@ -27,6 +28,7 @@ app.use('/users', usersRouter);
 app.use('/searchPath',searchPathRouter);
 app.use('/addMyPath',addMyPathRouter);
 app.use('/problemArea',problemAreaRouter);
+app.use('/myPlace',myPlaceRouter);
 
 
 // catch 404 and forward to error handler

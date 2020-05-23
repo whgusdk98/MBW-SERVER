@@ -29,7 +29,7 @@ module.exports = {
                 })
             })
     },
-    addPaths: async (pathType, myPathIdx) => {//클라이언트에서 줄 수 있는 정보 물어보고 없으면 빼기totalTime, totalPay, transitCount, totalWalkTime,
+    addPaths: async (pathType, myPathIdx) => {
         
         const table = 'paths';
         const fields = 'pathType, myPathIdx';
@@ -46,8 +46,6 @@ module.exports = {
             })
     },
     addSubway: async (trafficType, distance, sectionTime, stationCount, subwayCode, startName, startX, startY, endName, endX, endY, wayCode, door, startID, startExitNo, endExitNo, stopArray, pathIdx) => {
-
-        /***********여기서부터 다시하기2/17일 끝 어떤 정보 넣어줄 수 있는지 물어보기...*/
 
         const table1 = 'subPaths';
         const fields1 = 'trafficType, distance, sectionTime, stationCount, subwayCode, startName, startX, startY, endName, endX, endY, wayCode, door, startID, startExitNo, endExitNo, pathIdx';
@@ -89,13 +87,13 @@ module.exports = {
         })
     },
 
-    addBus: async (trafficType, distance, sectionTime, stationCount, startName, startX, startY, endName, endX, endY, startID, busNo, type, stopArray, pathIdx) => {
+    addBus: async (trafficType, distance, sectionTime, stationCount, startName, startX, startY, endName, endX, endY, startID, endID, busNo, type, stopArray, pathIdx) => {
         
         const table1 = 'subPaths';
-        const fields1 = 'trafficType, distance, sectionTime, stationCount, startName, startX, startY, endName, endX, endY, startID, busNo, type, pathIdx';
-        const questions1 = `?,?,?,?,?,?,?,?,?,?,?,?,?,?`;
+        const fields1 = 'trafficType, distance, sectionTime, stationCount, startName, startX, startY, endName, endX, endY, startID, endID, busNo, type, pathIdx';
+        const questions1 = `?,?,?,?,?,?,?,?,?,?,?,?,?,?,?`;
         const addBusQuery = `INSERT INTO ${table1}(${fields1}) VALUES(${questions1})`;
-        const addBusValues = [trafficType, distance, sectionTime, stationCount, startName, startX, startY, endName, endX, endY, startID, busNo, type, pathIdx];
+        const addBusValues = [trafficType, distance, sectionTime, stationCount, startName, startX, startY, endName, endX, endY, startID, endID, busNo, type, pathIdx];
 
         const table2 = 'stations';
         const fields2 = 'stationID, stationName, subPathIdx';

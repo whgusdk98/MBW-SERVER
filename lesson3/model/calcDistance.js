@@ -18,6 +18,5 @@ module.exports = {
         dist = dist*60*1.1515; //mile
         dist = dist*1.609344;
         return dist*1000;
-        //return Number(dist*1000).toFixed(2);
     }    
 }
